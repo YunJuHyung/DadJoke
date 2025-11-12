@@ -16,9 +16,22 @@
 		F4CONFIGFILE0000000001 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		F48DE9DF2EC4721000798524 /* Exceptions for "DadJoke" folder in "DadJoke" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Core/Config.xcconfig,
+			);
+			target = F4A6F5BB2EBC8A40001EF99E /* DadJoke */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F4A6F5BE2EBC8A40001EF99E /* DadJoke */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F48DE9DF2EC4721000798524 /* Exceptions for "DadJoke" folder in "DadJoke" target */,
+			);
 			path = DadJoke;
 			sourceTree = "<group>";
 		};
@@ -42,7 +55,6 @@
 			children = (
 				F4A6F5BE2EBC8A40001EF99E /* DadJoke */,
 				F4A6F5BD2EBC8A40001EF99E /* Products */,
-				F4CONFIGFILE0000000001 /* Config.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
