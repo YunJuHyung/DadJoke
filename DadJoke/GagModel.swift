@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Supabase
 
 // MARK: - 개그 모델
 struct Gag: Codable, Identifiable {
@@ -32,111 +33,39 @@ struct GagResponse: Codable {
     }
 }
 
-// MARK: - Mock API Service
-class MockGagAPIService {
+// MARK: - Supabase API Service
+class GagAPIService {
 
-    // 싱글톤 패턴 (선택사항)
-    static let shared = MockGagAPIService()
+    // 싱글톤 패턴
+    static let shared = GagAPIService()
+
+    private let supabase = SupabaseManager.shared.client
 
     private init() {}
 
-    // Mock 개그 데이터
-    private let mockGags: [Gag] = [
-        Gag(
-            id: 1,
-            title: "문어가 운동을 하면?",
-            content: "헬스장이 아니라 '웰스'장! 🐙",
-            category: "동물",
-            createdAt: Date()
-        ),
-        Gag(
-            id: 2,
-            title: "김밥이 넘어지면?",
-            content: "김밥말이! 🍱",
-            category: "음식",
-            createdAt: Date()
-        ),
-        Gag(
-            id: 3,
-            title: "돼지가 요리를 하면?",
-            content: "포크를 사용하겠지! 🐷",
-            category: "동물",
-            createdAt: Date()
-        ),
-        Gag(
-            id: 4,
-            title: "고양이가 사는 나라는?",
-            content: "냥골! 🐱",
-            category: "동물",
-            createdAt: Date()
-        ),
-        Gag(
-            id: 5,
-            title: "소가 웃으면?",
-            content: "우하하! 🐮",
-            category: "동물",
-            createdAt: Date()
-        ),
-        Gag(
-            id: 6,
-            title: "빵이 웃으면?",
-            content: "빵 터진다! 🍞",
-            category: "음식",
-            createdAt: Date()
-        ),
-        Gag(
-            id: 7,
-            title: "개가 얼음을 깨면?",
-            content: "아이스브레이킹! 🐕",
-            category: "동물",
-            createdAt: Date()
-        ),
-        Gag(
-            id: 8,
-            title: "닭이 카페에 가면?",
-            content: "닭다방! 🐔",
-            category: "동물",
-            createdAt: Date()
-        ),
-        Gag(
-            id: 9,
-            title: "엄마가 딸한테 라면 끓여주면서\n'라면이 익을 때까지 기다려'\n라고 했을 때 딸의 대답은?",
-            content: "넵! 기다면!\n(기다려 + 라면) 😂",
-            category: "일상",
-            createdAt: Date()
-        ),
-        Gag(
-            id: 10,
-            title: "세계에서 가장 가난한 왕은?\n힌트: 돈이 한 푼도 없어요",
-            content: "무일푼!\n(무일(無一) + 푼(penny)) 👑",
-            category: "말장난",
-            createdAt: Date()
-        ),
-        Gag(
-            id: 11,
-            title: "공부를 제일 안 하는 나라는?\n학생들이 공부를 정말 싫어한다고 해요",
-            content: "네팔!\n(네! 팔자다!) 📚❌",
-            category: "말장난",
-            createdAt: Date()
-        )
-    ]
-
     // MARK: - 전체 개그 가져오기
-    func fetchGags() async throws -> GagResponse {
-        // 네트워크 지연 시뮬레이션
-        try await Task.sleep(nanoseconds: 1_000_000_000) // 1초
+    func fetchGags() async throws -> [Gag] {
+        print("fetch 확인")
+        let response: [Gag] = try await supabase
+            .from("gags")
+            .select()
+            .order("created_at", ascending: false)
+            .execute()
+            .value
 
-        return GagResponse(
-            gags: mockGags,
-            totalCount: mockGags.count
-        )
+        return response
     }
 
     // MARK: - 특정 개그 가져오기
     func fetchGag(id: Int) async throws -> Gag {
-        try await Task.sleep(nanoseconds: 500_000_000) // 0.5초
+        let response: [Gag] = try await supabase
+            .from("gags")
+            .select()
+            .eq("id", value: id)
+            .execute()
+            .value
 
-        guard let gag = mockGags.first(where: { $0.id == id }) else {
+        guard let gag = response.first else {
             throw APIError.notFound
         }
 
@@ -144,26 +73,45 @@ class MockGagAPIService {
     }
 
     // MARK: - 카테고리별 개그 가져오기
-    func fetchGags(category: String) async throws -> GagResponse {
-        try await Task.sleep(nanoseconds: 1_000_000_000)
+    func fetchGags(category: String) async throws -> [Gag] {
+        let response: [Gag] = try await supabase
+            .from("gags")
+            .select()
+            .eq("category", value: category)
+            .order("created_at", ascending: false)
+            .execute()
+            .value
 
-        let filteredGags = mockGags.filter { $0.category == category }
-
-        return GagResponse(
-            gags: filteredGags,
-            totalCount: filteredGags.count
-        )
+        return response
     }
 
     // MARK: - 랜덤 개그 가져오기
     func fetchRandomGag() async throws -> Gag {
-        try await Task.sleep(nanoseconds: 500_000_000)
+        // Supabase에서 전체 개그를 가져온 후 랜덤 선택
+        let allGags = try await fetchGags()
 
-        guard let randomGag = mockGags.randomElement() else {
+        guard let randomGag = allGags.randomElement() else {
             throw APIError.noData
         }
 
         return randomGag
+    }
+
+    // MARK: - 새 개그 추가하기 (pending_gags 테이블에 저장)
+    func addGag(title: String, content: String, category: String) async throws {
+        struct NewGag: Encodable {
+            let title: String
+            let content: String
+            let category: String
+        }
+
+        let newGag = NewGag(title: title, content: content, category: category)
+
+        // pending_gags 테이블에 저장 (승인 대기)
+        try await supabase
+            .from("pending_gags")
+            .insert(newGag)
+            .execute()
     }
 }
 
