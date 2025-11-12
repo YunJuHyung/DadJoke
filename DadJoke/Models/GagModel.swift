@@ -14,9 +14,10 @@ struct Gag: Codable, Identifiable {
     let content: String
     let category: String
     let createdAt: Date
+    let likes: Int
 
     enum CodingKeys: String, CodingKey {
-        case id, title, content, category
+        case id, title, content, category, likes
         case createdAt = "created_at"
     }
 }

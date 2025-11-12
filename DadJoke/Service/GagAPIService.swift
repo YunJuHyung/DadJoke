@@ -88,6 +88,37 @@ class GagAPIService {
             .insert(newGag)
             .execute()
     }
+
+    // MARK: - 좋아요 on/off
+    func toggleLike(gagId: Int, isLiked: Bool) async throws {
+        // 좋아요 증가 or 감소
+        let delta = isLiked ? 1 : -1
+
+        // 1️⃣ 현재 좋아요 수 가져오기
+        struct LikeData: Decodable { let likes: Int }
+        let current: LikeData = try await supabase
+            .from("gags")
+            .select("likes")
+            .eq("id", value: gagId)
+            .single()
+            .execute()
+            .value
+
+        // 2️⃣ 좋아요 수 업데이트하기
+        let newLikes = max(current.likes + delta, 0)
+
+        // Use an Encodable struct to avoid 'Any cannot conform to Encodable' when updating
+        struct UpdateLikes: Encodable { let likes: Int }
+        let update = UpdateLikes(likes: newLikes)
+
+        let updateResponse = try await supabase
+            .from("gags")
+            .update(update)
+            .eq("id", value: gagId)
+            .execute()
+
+        print("✅ 좋아요 업데이트 완료: \(updateResponse)")
+    }
 }
 
 // MARK: - API Error

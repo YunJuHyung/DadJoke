@@ -16,6 +16,7 @@ struct ContentView: View {
     @State private var isAnimating = false
     @State private var dragOffset: CGFloat = 0
     @State private var isLoading = true
+    @State private var isLiked = false
     @State private var isBookmarked = false
     @State private var logMessages: [String] = []
 
@@ -163,7 +164,7 @@ struct ContentView: View {
                         }
 
                         // 아직 보지 않은 개그 중에서 다음 개그 선택
-                        loadNextGag()
+//                        loadNextGag()
 
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             withAnimation {
@@ -194,8 +195,20 @@ struct ContentView: View {
 
                     // 하단 액션 버튼들
                     HStack(spacing: 15) {
-                        ActionButton(icon: "heart", color: .pink)
-                        ActionButton(icon: "square.and.arrow.up", color: .blue)
+                        ActionButton(icon: "heart", color: .pink, isActive: isLiked) {
+                            Task {
+                                guard let gag = currentGag else { return }
+                                isLiked.toggle()
+                                do {
+                                    try await GagAPIService.shared.toggleLike(gagId: gag.id, isLiked: isLiked)
+                                } catch {
+                                    print("❌ 좋아요 업데이트 실패:", error)
+                                }
+                            }
+                        }
+                        ActionButton(icon: "square.and.arrow.up", color: .blue, isActive: false) {
+                            // 추후 공유하기 추가
+                        }
 
                         // 북마크 버튼
                         Button(action: {
@@ -257,12 +270,13 @@ struct ContentView: View {
 struct ActionButton: View {
     let icon: String
     let color: Color
+    let isActive: Bool
+    let action: () -> Void
 
     var body: some View {
-        Button(action: {
+        Button(action: action) {
             // 액션 추가 예정
-        }) {
-            Image(systemName: icon)
+            Image(systemName: isActive ? "\(icon).fill" : icon)
                 .font(.system(size: 22))
                 .foregroundColor(color)
                 .frame(width: 60, height: 60)
