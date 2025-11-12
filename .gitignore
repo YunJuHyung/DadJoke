@@ -1,0 +1,19 @@
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/contents.xcworkspacedata
+*.xcuserstate
+*.xcuserdatad
+
+# 환경 변수 파일 (실제 API 키 포함 - 절대 업로드 금지!)
+Config.xcconfig
+
+# MCP 설정 (API 키 포함)
+.mcp.json
+
+# Mac
+.DS_Store
+
+# Claude Code
+.claude/
