@@ -9,16 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @State private var allGags: [Gag] = []
-    @State private var availableGags: [Gag] = []
-    @State private var currentGag: Gag?
-    @State private var isAnswerRevealed = false
-    @State private var isAnimating = false
-    @State private var dragOffset: CGFloat = 0
-    @State private var isLoading = true
-    @State private var isLiked = false
-    @State private var isBookmarked = false
-    @State private var logMessages: [String] = []
+    @ObservedObject var viewModel: GagViewModel
 
     var body: some View {
         ZStack {
@@ -35,7 +26,7 @@ struct ContentView: View {
                 VStack(spacing: 8) {
                     Text("😂")
                         .font(.system(size: 60))
-                        .rotationEffect(.degrees(isAnimating ? 360 : 0))
+                        .rotationEffect(.degrees(viewModel.isAnimating ? 360 : 0))
 
                     Text("아재개그")
                         .font(.system(size: 36, weight: .bold, design: .rounded))
@@ -46,11 +37,11 @@ struct ContentView: View {
                 Spacer()
 
                 // 로딩 중이거나 개그 카드 영역
-                if isLoading {
+                if viewModel.isLoading {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         .scaleEffect(2)
-                } else if availableGags.isEmpty {
+                } else if viewModel.availableGags.isEmpty {
                     // 모든 개그를 확인한 경우
                     VStack(spacing: 20) {
                         Text("🎉")
@@ -75,7 +66,7 @@ struct ContentView: View {
                                 .font(.system(size: 24, weight: .bold, design: .rounded))
                                 .foregroundStyle(.orange)
 
-                            Text(currentGag?.title ?? "개그를 불러올 수 없습니다")
+                            Text(viewModel.currentGag?.title ?? "개그를 불러올 수 없습니다")
                                 .font(.system(size: 24, weight: .medium, design: .rounded))
                                 .multilineTextAlignment(.leading)
                                 .foregroundStyle(.primary)
@@ -91,7 +82,7 @@ struct ContentView: View {
                         )
 
                     // 답변 카드 (항상 표시)
-                    if let content = currentGag?.content, isAnswerRevealed {
+                    if let content = viewModel.currentGag?.content, viewModel.isAnswerRevealed {
                         HStack(alignment: .top, spacing: 12) {
                             Text("A.")
                                 .font(.system(size: 24, weight: .bold, design: .rounded))
@@ -114,25 +105,18 @@ struct ContentView: View {
                     }
                     }
                     .padding(.horizontal, 40)  // 양쪽 여백 증가
-                    .scaleEffect(isAnimating ? 1.05 : 1.0)
+                    .scaleEffect(viewModel.isAnimating ? 1.05 : 1.0)
                 }
 
                 Spacer()
 
                 // 버튼 영역 (로딩이 완료된 경우만)
-                if !isLoading {
+                if !viewModel.isLoading {
                     VStack(spacing: 20) {
                     // 정답 확인 버튼 (답변이 숨겨져 있을 때만 표시)
-                    if !isAnswerRevealed && currentGag != nil {
+                    if !viewModel.isAnswerRevealed && viewModel.currentGag != nil {
                         Button(action: {
-                            // 답변을 확인하면 개그를 본 것으로 표시
-                            if let gag = currentGag {
-                                UserDataManager.shared.markGagAsViewed(gagId: gag.id)
-                            }
-
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                isAnswerRevealed = true
-                            }
+                            viewModel.revealAnswer()
                         }) {
                             HStack {
                                 Image(systemName: "eye.fill")
@@ -158,19 +142,7 @@ struct ContentView: View {
 
                     // 다음 개그 버튼
                     Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                            isAnimating = true
-                            isAnswerRevealed = false
-                        }
-
-//                         아직 보지 않은 개그 중에서 다음 개그 선택
-                        loadNextGag()
-
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            withAnimation {
-                                isAnimating = false
-                            }
-                        }
+                        viewModel.moveToNextGag()
                     }) {
                         HStack {
                             Image(systemName: "arrow.right.circle.fill")
@@ -195,10 +167,8 @@ struct ContentView: View {
 
                     // 하단 액션 버튼들
                     HStack(spacing: 15) {
-                        ActionButton(icon: "heart", color: .pink, isActive: isLiked) {
-                            if let gag = currentGag {
-                                isLiked = UserDataManager.shared.toggleLike(gagId: gag.id)
-                            }
+                        ActionButton(icon: "heart", color: .pink, isActive: viewModel.isLiked) {
+                            viewModel.toggleLike()
                         }
                         ActionButton(icon: "square.and.arrow.up", color: .blue, isActive: false) {
                             // 추후 공유하기 추가
@@ -206,11 +176,9 @@ struct ContentView: View {
 
                         // 북마크 버튼
                         Button(action: {
-                            if let gag = currentGag {
-                                isBookmarked = UserDataManager.shared.toggleBookmark(gagId: gag.id)
-                            }
+                            viewModel.toggleBookmark()
                         }) {
-                            Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
+                            Image(systemName: viewModel.isBookmarked ? "bookmark.fill" : "bookmark")
                                 .font(.system(size: 22))
                                 .foregroundColor(.yellow)
                                 .frame(width: 60, height: 60)
@@ -226,37 +194,7 @@ struct ContentView: View {
             }
         }
         .task {
-            // Supabase를 통해 개그 데이터 로드
-            do {
-                allGags = try await GagAPIService.shared.fetchGags()
-                loadNextGag()
-                isLoading = false
-            } catch {
-                print("개그 데이터 로드 실패: \(error)")
-                isLoading = false
-            }
-        }
-    }
-
-    // MARK: - Helper Functions
-
-    private func loadNextGag() {
-        // 오늘 본 개그 목록 가져오기
-        let viewedGagIds = UserDataManager.shared.getViewedGagIds()
-//        logMessages.append("viewedGagIds: \(viewedGagIds)")
-        // 아직 보지 않은 개그 필터링
-        availableGags = allGags.filter { !viewedGagIds.contains($0.id) }
-//        logMessages.append("availableGags: \(availableGags)")
-
-        // 다음 개그 선택
-        if let nextGag = availableGags.randomElement() {
-            currentGag = nextGag
-            // 북마크 상태 업데이트
-            isBookmarked = UserDataManager.shared.isBookmarked(gagId: nextGag.id)
-            // 좋아요 상태 업데이트
-            isLiked = UserDataManager.shared.isLiked(gagId: nextGag.id)
-        } else {
-            currentGag = nil
+            await viewModel.fetchGags()
         }
     }
 }
@@ -283,5 +221,5 @@ struct ActionButton: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(viewModel: GagViewModel())
 }

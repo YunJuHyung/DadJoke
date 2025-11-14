@@ -20,7 +20,6 @@ class GagAPIService {
 
     // MARK: - 전체 개그 가져오기
     func fetchGags() async throws -> [Gag] {
-        print("fetch 확인")
         let response: [Gag] = try await supabase
             .from("gags")
             .select()
@@ -116,8 +115,6 @@ class GagAPIService {
             .update(update)
             .eq("id", value: gagId)
             .execute()
-
-        print("✅ 좋아요 업데이트 완료: \(updateResponse)")
     }
 }
 

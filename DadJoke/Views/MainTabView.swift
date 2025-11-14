@@ -8,10 +8,12 @@
 import SwiftUI
 
 struct MainTabView: View {
+    @StateObject private var gagViewModel = GagViewModel()
+
     var body: some View {
         TabView {
             // 홈 탭
-            ContentView()
+            ContentView(viewModel: gagViewModel)
                 .tabItem {
                     Label("홈", systemImage: "house.fill")
                 }
