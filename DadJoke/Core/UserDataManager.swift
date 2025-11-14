@@ -15,6 +15,7 @@ class UserDataManager {
     private let viewedGagsKey = "viewedGags"
     private let lastResetDateKey = "lastResetDate"
     private let bookmarkedGagsKey = "bookmarkedGags"
+    private let likedGagsKey = "likedGags"
 
     private init() {
         checkAndResetIfNeeded()
@@ -86,5 +87,34 @@ class UserDataManager {
     // 특정 개그가 북마크되어 있는지 확인
     func isBookmarked(gagId: Int) -> Bool {
         return getBookmarkedGagIds().contains(gagId)
+    }
+
+    // MARK: - 좋아요 관리
+
+    // 좋아요한 개그 ID 목록 가져오기
+    func getLikedGagIds() -> [Int] {
+        return defaults.array(forKey: likedGagsKey) as? [Int] ?? []
+    }
+
+    // 좋아요 토글 (추가/제거)
+    func toggleLike(gagId: Int) -> Bool {
+        var likedGags = getLikedGagIds()
+
+        if let index = likedGags.firstIndex(of: gagId) {
+            // 이미 좋아요되어 있으면 제거
+            likedGags.remove(at: index)
+            defaults.set(likedGags, forKey: likedGagsKey)
+            return false
+        } else {
+            // 좋아요 추가
+            likedGags.append(gagId)
+            defaults.set(likedGags, forKey: likedGagsKey)
+            return true
+        }
+    }
+
+    // 특정 개그가 좋아요되어 있는지 확인
+    func isLiked(gagId: Int) -> Bool {
+        return getLikedGagIds().contains(gagId)
     }
 }

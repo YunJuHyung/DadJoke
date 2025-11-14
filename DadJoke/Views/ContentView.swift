@@ -163,8 +163,8 @@ struct ContentView: View {
                             isAnswerRevealed = false
                         }
 
-                        // 아직 보지 않은 개그 중에서 다음 개그 선택
-//                        loadNextGag()
+//                         아직 보지 않은 개그 중에서 다음 개그 선택
+                        loadNextGag()
 
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             withAnimation {
@@ -196,14 +196,8 @@ struct ContentView: View {
                     // 하단 액션 버튼들
                     HStack(spacing: 15) {
                         ActionButton(icon: "heart", color: .pink, isActive: isLiked) {
-                            Task {
-                                guard let gag = currentGag else { return }
-                                isLiked.toggle()
-                                do {
-                                    try await GagAPIService.shared.toggleLike(gagId: gag.id, isLiked: isLiked)
-                                } catch {
-                                    print("❌ 좋아요 업데이트 실패:", error)
-                                }
+                            if let gag = currentGag {
+                                isLiked = UserDataManager.shared.toggleLike(gagId: gag.id)
                             }
                         }
                         ActionButton(icon: "square.and.arrow.up", color: .blue, isActive: false) {
@@ -252,7 +246,6 @@ struct ContentView: View {
 //        logMessages.append("viewedGagIds: \(viewedGagIds)")
         // 아직 보지 않은 개그 필터링
         availableGags = allGags.filter { !viewedGagIds.contains($0.id) }
-        print(allGags)
 //        logMessages.append("availableGags: \(availableGags)")
 
         // 다음 개그 선택
@@ -260,6 +253,8 @@ struct ContentView: View {
             currentGag = nextGag
             // 북마크 상태 업데이트
             isBookmarked = UserDataManager.shared.isBookmarked(gagId: nextGag.id)
+            // 좋아요 상태 업데이트
+            isLiked = UserDataManager.shared.isLiked(gagId: nextGag.id)
         } else {
             currentGag = nil
         }
