@@ -50,11 +50,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F4A11A102ECB0EEA0007E71B /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				F4CONFIGFILE0000000001 /* Config.xcconfig */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		F4A6F5B32EBC8A40001EF99E = {
 			isa = PBXGroup;
 			children = (
 				F4A6F5BE2EBC8A40001EF99E /* DadJoke */,
 				F4A6F5BD2EBC8A40001EF99E /* Products */,
+				F4A11A102ECB0EEA0007E71B /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
