@@ -89,12 +89,12 @@ class GagViewModel: ObservableObject {
         }
     }
 
-    // 좋아요 토글
-    func toggleLike() {
+    // 좋아요 버튼 액션
+    func likeGag() {
         guard let gag = currentGag else { return }
 
         // 1. 로컬 상태 업데이트
-        isLiked = userDataManager.toggleLike(gagId: gag.id)
+        isLiked = userDataManager.updateLike(gagId: gag.id)
 
         // 2. Supabase 데이터베이스도 업데이트
         Task {
@@ -104,14 +104,28 @@ class GagViewModel: ObservableObject {
             } catch {
                 print("❌ Supabase 좋아요 업데이트 실패:", error)
                 // 실패 시 로컬 상태 롤백
-                isLiked = userDataManager.toggleLike(gagId: gag.id)
+                isLiked = userDataManager.updateLike(gagId: gag.id)
             }
         }
     }
 
-    // 북마크 토글
-    func toggleBookmark() {
+    // 북마크 버튼 액션
+    func bookmarkGag() {
         guard let gag = currentGag else { return }
-        isBookmarked = userDataManager.toggleBookmark(gagId: gag.id)
+        isBookmarked = userDataManager.updateBookmark(gagId: gag.id)
+    }
+
+    // 특정 개그 로드 (알림 딥링크용)
+    func loadSpecificGag(id: Int) async {
+        do {
+            let gag = try await gagAPIService.fetchGag(id: id)
+            currentGag = gag
+            isBookmarked = userDataManager.isBookmarked(gagId: gag.id)
+            isLiked = userDataManager.isLiked(gagId: gag.id)
+            isAnswerRevealed = false
+            print("✅ 알림에서 개그 로드 완료: \(gag.title)")
+        } catch {
+            print("❌ 개그 로드 실패: \(error)")
+        }
     }
 }

@@ -67,8 +67,8 @@ class UserDataManager {
         return defaults.array(forKey: bookmarkedGagsKey) as? [Int] ?? []
     }
 
-    // 북마크 토글 (추가/제거)
-    func toggleBookmark(gagId: Int) -> Bool {
+    // 북마크 상태 변경 (추가/제거)
+    func updateBookmark(gagId: Int) -> Bool {
         var bookmarkedGags = getBookmarkedGagIds()
 
         if let index = bookmarkedGags.firstIndex(of: gagId) {
@@ -96,8 +96,8 @@ class UserDataManager {
         return defaults.array(forKey: likedGagsKey) as? [Int] ?? []
     }
 
-    // 좋아요 토글 (추가/제거)
-    func toggleLike(gagId: Int) -> Bool {
+    // 좋아요 상태 변경 (추가/제거)
+    func updateLike(gagId: Int) -> Bool {
         var likedGags = getLikedGagIds()
 
         if let index = likedGags.firstIndex(of: gagId) {

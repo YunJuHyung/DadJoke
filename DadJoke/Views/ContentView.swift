@@ -10,6 +10,7 @@ import SwiftData
 
 struct ContentView: View {
     @ObservedObject var viewModel: GagViewModel
+    @EnvironmentObject var navigationManager: NavigationManager
 
     var body: some View {
         ZStack {
@@ -168,7 +169,7 @@ struct ContentView: View {
                     // 하단 액션 버튼들
                     HStack(spacing: 15) {
                         ActionButton(icon: "heart", color: .pink, isActive: viewModel.isLiked) {
-                            viewModel.toggleLike()
+                            viewModel.likeGag()
                         }
                         ActionButton(icon: "square.and.arrow.up", color: .blue, isActive: false) {
                             // 추후 공유하기 추가
@@ -176,7 +177,7 @@ struct ContentView: View {
 
                         // 북마크 버튼
                         Button(action: {
-                            viewModel.toggleBookmark()
+                            viewModel.bookmarkGag()
                         }) {
                             Image(systemName: viewModel.isBookmarked ? "bookmark.fill" : "bookmark")
                                 .font(.system(size: 22))
@@ -195,6 +196,16 @@ struct ContentView: View {
         }
         .task {
             await viewModel.fetchGags()
+        }
+        .onChange(of: navigationManager.selectedGagId) { gagId in
+            // 알림에서 전달받은 개그 ID로 이동
+            if let id = gagId, let intId = Int(id) {
+                Task {
+                    await viewModel.loadSpecificGag(id: intId)
+                }
+                // 네비게이션 상태 리셋
+                navigationManager.resetNavigation()
+            }
         }
     }
 }

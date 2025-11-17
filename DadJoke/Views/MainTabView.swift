@@ -29,6 +29,12 @@ struct MainTabView: View {
                 .tabItem {
                     Label("추가", systemImage: "plus.circle.fill")
                 }
+
+            // 설정 탭
+            SettingsView()
+                .tabItem {
+                    Label("설정", systemImage: "gear")
+                }
         }
         .accentColor(.blue)
     }
