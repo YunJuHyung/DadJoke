@@ -16,13 +16,17 @@ struct ContentView: View {
         ZStack {
             // 배경 그라데이션
             LinearGradient(
-                gradient: Gradient(colors: [Color(#colorLiteral(red: 0.4745098054, green: 0.8392156959, blue: 0.9764705896, alpha: 1)), Color(#colorLiteral(red: 0.2196078449, green: 0.007843137719, blue: 0.8549019694, alpha: 1))]),
+                gradient: Gradient(colors: [Color(.brown)]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()  // 배경을 전체 화면으로 확장
+            .onTapGesture {
+                hideKeyboard()
+            }
 
-            VStack(spacing: 40) {
+            ScrollView {
+                VStack(spacing: 40) {
                 // 헤더
                 VStack(spacing: 8) {
                     Text("😂")
@@ -192,6 +196,7 @@ struct ContentView: View {
                     }
                     .padding(.bottom, 50)
                 }
+                }
             }
         }
         .task {
@@ -207,6 +212,10 @@ struct ContentView: View {
                 navigationManager.resetNavigation()
             }
         }
+    }
+
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
 

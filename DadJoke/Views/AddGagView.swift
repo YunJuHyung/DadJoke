@@ -19,15 +19,15 @@ struct AddGagView: View {
     let categories = ["동물", "음식", "일상", "말장난", "기타"]
 
     var body: some View {
+        
         NavigationView {
             ZStack {
-                // 배경 그라데이션
-                LinearGradient(
-                    gradient: Gradient(colors: [Color(#colorLiteral(red: 0.4745098054, green: 0.8392156959, blue: 0.9764705896, alpha: 1)), Color(#colorLiteral(red: 0.2196078449, green: 0.007843137719, blue: 0.8549019694, alpha: 1))]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                // 노트 느낌 배경
+                Color(#colorLiteral(red: 0.9882352941, green: 0.9490196078, blue: 0.8509803922, alpha: 1)) // 연한 베이지/크림색
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        hideKeyboard()
+                    }
 
                 ScrollView {
                     VStack(spacing: 25) {
@@ -38,13 +38,13 @@ struct AddGagView: View {
 
                             Text("새로운 아재개그를 공유해주세요!")
                                 .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.white)
+                                .foregroundColor(.black)
 
                             Text("제출된 개그는 검토 후 추가됩니다")
                                 .font(.system(size: 14))
-                                .foregroundColor(.white.opacity(0.8))
+                                .foregroundColor(.gray)
                         }
-                        .padding(.top, 20)
+                        .padding(.top, 80)
 
                         // 입력 폼
                         VStack(spacing: 20) {
@@ -52,7 +52,7 @@ struct AddGagView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("질문")
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.brown)
 
                                 TextEditor(text: $title)
                                     .frame(height: 100)
@@ -61,7 +61,7 @@ struct AddGagView: View {
                                     .cornerRadius(12)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                            .stroke(Color.brown.opacity(0.3), lineWidth: 1)
                                     )
                             }
 
@@ -69,7 +69,7 @@ struct AddGagView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("답변")
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.brown)
 
                                 TextEditor(text: $content)
                                     .frame(height: 100)
@@ -78,7 +78,7 @@ struct AddGagView: View {
                                     .cornerRadius(12)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                            .stroke(Color.brown.opacity(0.3), lineWidth: 1)
                                     )
                             }
 
@@ -86,7 +86,7 @@ struct AddGagView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("카테고리")
                                     .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.brown)
 
                                 Picker("카테고리", selection: $selectedCategory) {
                                     ForEach(categories, id: \.self) { category in
@@ -132,8 +132,9 @@ struct AddGagView: View {
                         }
                         .padding(25)
                         .background(
-                            RoundedRectangle(cornerRadius: 25)
-                                .fill(Color.white.opacity(0.2))
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color.white)
+                                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
                         )
                         .padding(.horizontal, 20)
                     }
@@ -178,6 +179,10 @@ struct AddGagView: View {
 
             isSubmitting = false
         }
+    }
+
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
 

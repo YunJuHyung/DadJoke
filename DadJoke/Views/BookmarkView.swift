@@ -108,7 +108,7 @@ struct GagListItemView: View {
 
                 // 북마크 버튼
                 Button(action: {
-                    _ = UserDataManager.shared.toggleBookmark(gagId: gag.id)
+                    _ = UserDataManager.shared.updateBookmark(gagId: gag.id)
                     onBookmarkToggle()
                 }) {
                     Image(systemName: "bookmark.fill")

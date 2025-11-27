@@ -15,10 +15,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
 
-        // 알림 권한 요청
-        Task {
-            await NotificationManager.shared.requestAuthorization()
-        }
+        // 로그인 후 AuthManager에서 알림 권한을 요청하므로
+        // 여기서는 요청하지 않음
 
         return true
     }

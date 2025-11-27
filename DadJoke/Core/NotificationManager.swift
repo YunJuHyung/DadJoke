@@ -9,6 +9,8 @@ import UserNotifications
 import Foundation
 import UIKit
 import Combine
+internal import Auth
+import Supabase
 
 @MainActor
 class NotificationManager: NSObject, ObservableObject {
@@ -53,10 +55,8 @@ class NotificationManager: NSObject, ObservableObject {
         // Supabase에 토큰 저장
         do {
             // 현재 로그인한 유저 ID 가져오기
-            guard let userId = try await SupabaseManager.shared.client.auth.session.user.id else {
-                print("❌ 로그인된 유저가 없습니다")
-                return
-            }
+            let session = try await SupabaseManager.shared.client.auth.session
+            let userId = session.user.id
 
             struct DeviceTokenInsert: Encodable {
                 let user_id: String
@@ -81,7 +81,7 @@ class NotificationManager: NSObject, ObservableObject {
 
             print("✅ 디바이스 토큰 저장 완료: \(token)")
         } catch {
-            print("❌ 디바이스 토큰 저장 실패: \(error)")
+            print("❌ 디바이스 토큰 저장 실패 (로그인 필요): \(error)")
         }
     }
 
